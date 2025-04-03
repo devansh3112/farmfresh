@@ -21,6 +21,7 @@ export interface Product {
   images: string[];
   organic: boolean;
   featured?: boolean;
+  created_at?: string;
 }
 
 export interface CartItem {
@@ -52,4 +53,3 @@ export interface Review {
 export interface UserRole {
   role: 'farmer' | 'consumer';
 }
-

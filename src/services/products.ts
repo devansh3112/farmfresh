@@ -1,9 +1,5 @@
-
-import { supabase } from '@/lib/supabase';
+import { supabase, isUsingRealSupabase } from '@/lib/supabase';
 import { Product } from '@/types';
-
-// Check if we're using real Supabase or placeholder credentials
-const isUsingRealSupabase = !supabase.supabaseUrl.includes('your-project.supabase.co');
 
 // Mock data for when we don't have real Supabase credentials
 const mockProducts: Product[] = [
@@ -52,7 +48,7 @@ const mockProducts: Product[] = [
 ];
 
 export const getProducts = async (): Promise<{ data: Product[] | null; error: any }> => {
-  if (!isUsingRealSupabase) {
+  if (!isUsingRealSupabase()) {
     return { data: mockProducts, error: null };
   }
 
@@ -65,7 +61,7 @@ export const getProducts = async (): Promise<{ data: Product[] | null; error: an
 };
 
 export const getProductsByCategory = async (category: string): Promise<{ data: Product[] | null; error: any }> => {
-  if (!isUsingRealSupabase) {
+  if (!isUsingRealSupabase()) {
     const filtered = mockProducts.filter(p => p.category === category);
     return { data: filtered, error: null };
   }
@@ -80,7 +76,7 @@ export const getProductsByCategory = async (category: string): Promise<{ data: P
 };
 
 export const getFeaturedProducts = async (): Promise<{ data: Product[] | null; error: any }> => {
-  if (!isUsingRealSupabase) {
+  if (!isUsingRealSupabase()) {
     const featured = mockProducts.filter(p => p.featured);
     return { data: featured, error: null };
   }
@@ -95,7 +91,7 @@ export const getFeaturedProducts = async (): Promise<{ data: Product[] | null; e
 };
 
 export const getProductById = async (id: string): Promise<{ data: Product | null; error: any }> => {
-  if (!isUsingRealSupabase) {
+  if (!isUsingRealSupabase()) {
     const product = mockProducts.find(p => p.id === id) || null;
     return { data: product, error: null };
   }
@@ -110,7 +106,7 @@ export const getProductById = async (id: string): Promise<{ data: Product | null
 };
 
 export const getProductsByFarmer = async (farmerId: string): Promise<{ data: Product[] | null; error: any }> => {
-  if (!isUsingRealSupabase) {
+  if (!isUsingRealSupabase()) {
     const filtered = mockProducts.filter(p => p.farmerId === farmerId);
     return { data: filtered, error: null };
   }

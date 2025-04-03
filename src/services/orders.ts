@@ -1,9 +1,5 @@
-
-import { supabase } from '@/lib/supabase';
+import { supabase, isUsingRealSupabase } from '@/lib/supabase';
 import { Order, CartItem } from '@/types';
-
-// Check if we're using real Supabase or placeholder credentials
-const isUsingRealSupabase = !supabase.supabaseUrl.includes('your-project.supabase.co');
 
 // Mock orders for when we don't have real Supabase credentials
 const mockOrders: Order[] = [
@@ -42,7 +38,7 @@ export const createOrder = async (
   items: CartItem[],
   totalAmount: number
 ): Promise<{ data: Order | null; error: any }> => {
-  if (!isUsingRealSupabase) {
+  if (!isUsingRealSupabase()) {
     const newOrder: Order = {
       id: `mock-${Date.now()}`,
       consumerId,
@@ -93,7 +89,7 @@ export const createOrder = async (
 };
 
 export const getOrdersByConsumer = async (consumerId: string): Promise<{ data: Order[] | null; error: any }> => {
-  if (!isUsingRealSupabase) {
+  if (!isUsingRealSupabase()) {
     const filtered = mockOrders.filter(o => o.consumerId === consumerId);
     return { data: filtered, error: null };
   }
@@ -108,7 +104,7 @@ export const getOrdersByConsumer = async (consumerId: string): Promise<{ data: O
 };
 
 export const getOrdersByFarmer = async (farmerId: string): Promise<{ data: Order[] | null; error: any }> => {
-  if (!isUsingRealSupabase) {
+  if (!isUsingRealSupabase()) {
     const filtered = mockOrders.filter(o => o.farmerId === farmerId);
     return { data: filtered, error: null };
   }
@@ -123,7 +119,7 @@ export const getOrdersByFarmer = async (farmerId: string): Promise<{ data: Order
 };
 
 export const getOrderById = async (id: string): Promise<{ data: Order | null; error: any }> => {
-  if (!isUsingRealSupabase) {
+  if (!isUsingRealSupabase()) {
     const order = mockOrders.find(o => o.id === id) || null;
     return { data: order, error: null };
   }
@@ -141,7 +137,7 @@ export const updateOrderStatus = async (
   id: string,
   status: Order['status']
 ): Promise<{ data: Order | null; error: any }> => {
-  if (!isUsingRealSupabase) {
+  if (!isUsingRealSupabase()) {
     const orderIndex = mockOrders.findIndex(o => o.id === id);
     if (orderIndex >= 0) {
       mockOrders[orderIndex].status = status;

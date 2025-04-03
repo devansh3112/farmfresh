@@ -13,6 +13,11 @@ if (supabaseUrl === 'https://your-project.supabase.co' || supabaseAnonKey === 'y
 // Create a single supabase client for the entire app
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+// Helper to check if we're using real Supabase or placeholder credentials
+export const isUsingRealSupabase = (): boolean => {
+  return supabaseUrl !== 'https://your-project.supabase.co' && supabaseAnonKey !== 'your-anon-key';
+};
+
 export type SupabaseUser = {
   id: string;
   email: string;

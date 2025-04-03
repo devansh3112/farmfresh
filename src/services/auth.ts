@@ -1,14 +1,10 @@
-
-import { supabase } from '@/lib/supabase';
+import { supabase, isUsingRealSupabase } from '@/lib/supabase';
 import { UserRole } from '@/types';
-
-// Check if we're using real Supabase or placeholder credentials
-const isUsingRealSupabase = !supabase.supabaseUrl.includes('your-project.supabase.co');
 
 // Mock users for when we don't have real Supabase credentials
 const mockUsers = [
-  { id: 'farm1', email: 'farmer@example.com', role: 'farmer' },
-  { id: 'user1', email: 'consumer@example.com', role: 'consumer' }
+  { id: 'farm1', email: 'farmer@example.com', role: 'farmer' as const },
+  { id: 'user1', email: 'consumer@example.com', role: 'consumer' as const }
 ];
 
 let mockCurrentUser: { id: string; email: string; role: UserRole['role'] } | null = null;
@@ -18,7 +14,7 @@ export const signUp = async (
   password: string, 
   role: UserRole['role']
 ): Promise<{ user: any; error: any }> => {
-  if (!isUsingRealSupabase) {
+  if (!isUsingRealSupabase()) {
     // Simple mock implementation
     const existingUser = mockUsers.find(u => u.email === email);
     if (existingUser) {
@@ -68,7 +64,7 @@ export const signUp = async (
 };
 
 export const signIn = async (email: string, password: string): Promise<{ user: any; error: any, role: UserRole['role'] | null }> => {
-  if (!isUsingRealSupabase) {
+  if (!isUsingRealSupabase()) {
     // Simple mock implementation
     const user = mockUsers.find(u => u.email === email);
     if (!user) {
@@ -76,7 +72,7 @@ export const signIn = async (email: string, password: string): Promise<{ user: a
     }
     
     mockCurrentUser = user;
-    return { user, error: null, role: user.role as UserRole['role'] };
+    return { user, error: null, role: user.role };
   }
 
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -108,7 +104,7 @@ export const signIn = async (email: string, password: string): Promise<{ user: a
 };
 
 export const signOut = async (): Promise<{ error: any }> => {
-  if (!isUsingRealSupabase) {
+  if (!isUsingRealSupabase()) {
     mockCurrentUser = null;
     return { error: null };
   }
@@ -118,7 +114,7 @@ export const signOut = async (): Promise<{ error: any }> => {
 };
 
 export const getCurrentUser = async (): Promise<{ user: any; error: any, role: UserRole['role'] | null }> => {
-  if (!isUsingRealSupabase) {
+  if (!isUsingRealSupabase()) {
     if (!mockCurrentUser) {
       return { user: null, error: null, role: null };
     }
@@ -158,7 +154,7 @@ export const updateUserProfile = async (
     address?: string;
   }
 ): Promise<{ data: any; error: any }> => {
-  if (!isUsingRealSupabase) {
+  if (!isUsingRealSupabase()) {
     // In a real implementation, you would update the user profile here
     return { data: { ...profileData, id: userId }, error: null };
   }
