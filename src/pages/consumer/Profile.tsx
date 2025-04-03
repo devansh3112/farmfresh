@@ -1,14 +1,17 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle, InfoIcon } from "lucide-react";
 import { useUserRole } from "@/context/UserRoleContext";
 import { toast } from "@/hooks/use-toast";
 import { updateUserProfile } from "@/services/auth";
-import { supabase } from "@/lib/supabase";
+import { supabase, isUsingRealSupabase } from "@/lib/supabase";
+import { useNavigate } from "react-router-dom";
 
 const ProfileScreen = () => {
   const { userRole, userId, userEmail, logout } = useUserRole();
@@ -17,6 +20,8 @@ const ProfileScreen = () => {
   const [address, setAddress] = useState("");
   const [loading, setLoading] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
+  const navigate = useNavigate();
+  const isDemoMode = !isUsingRealSupabase();
 
   useEffect(() => {
     if (userId) {
@@ -29,6 +34,15 @@ const ProfileScreen = () => {
   const loadUserProfile = async () => {
     setProfileLoading(true);
     try {
+      if (isDemoMode) {
+        // Set some demo data
+        setName(userRole === 'farmer' ? 'Demo Farmer' : 'Demo Consumer');
+        setPhone('555-123-4567');
+        setAddress('123 Demo Street');
+        setProfileLoading(false);
+        return;
+      }
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('name, phone, address')
@@ -99,6 +113,7 @@ const ProfileScreen = () => {
       title: "Logged out",
       description: "You have been logged out successfully.",
     });
+    navigate("/");
   };
 
   if (profileLoading) {
@@ -118,6 +133,24 @@ const ProfileScreen = () => {
         </Button>
       </div>
       
+      {isDemoMode && (
+        <Alert className="mb-6 border-yellow-500 bg-yellow-50">
+          <AlertCircle className="h-4 w-4 text-yellow-600" />
+          <AlertTitle className="text-yellow-800">Running in Demo Mode</AlertTitle>
+          <AlertDescription className="text-yellow-700">
+            The app is running with mock data. To connect to a real Supabase backend, 
+            please set the VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.
+            <br />
+            <br />
+            <strong>Demo accounts:</strong>
+            <ul className="list-disc ml-5 mt-1">
+              <li>Farmer: farmer@example.com (any password)</li>
+              <li>Consumer: consumer@example.com (any password)</li>
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
+      
       <Tabs defaultValue="profile" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="profile">Profile Information</TabsTrigger>
@@ -128,6 +161,11 @@ const ProfileScreen = () => {
           <Card>
             <CardHeader>
               <CardTitle>Profile Information</CardTitle>
+              {isDemoMode && (
+                <CardDescription>
+                  In demo mode, profile updates will only persist during your current session.
+                </CardDescription>
+              )}
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSaveProfile} className="space-y-4">

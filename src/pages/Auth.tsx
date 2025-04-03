@@ -3,17 +3,21 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 import { useUserRole } from "@/context/UserRoleContext";
 import { ShoppingBag, Tractor } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { SignupForm } from "@/components/auth/SignupForm";
+import { isUsingRealSupabase } from "@/lib/supabase";
 
 const AuthScreen = () => {
   const { userRole, isLoading } = useUserRole();
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState<"farmer" | "consumer" | null>(null);
   const [authMode, setAuthMode] = useState<"role-select" | "login" | "signup">("role-select");
+  const isDemoMode = !isUsingRealSupabase();
 
   useEffect(() => {
     // Redirect if user already has a role and is authenticated
@@ -42,6 +46,23 @@ const AuthScreen = () => {
           <h1 className="text-4xl font-bold text-primary-dark font-serif">FarmFresh</h1>
           <p className="text-neutral-700 mt-2">Farm-to-Consumer Marketplace</p>
         </div>
+
+        {isDemoMode && (
+          <Alert className="mb-6 border-yellow-500 bg-yellow-50">
+            <AlertCircle className="h-4 w-4 text-yellow-600" />
+            <AlertTitle className="text-yellow-800">Demo Mode Active</AlertTitle>
+            <AlertDescription className="text-yellow-700">
+              The app is running with mock data. For a full experience with a real database, please connect to Supabase.
+              <br />
+              <strong>Demo accounts:</strong>
+              <ul className="list-disc ml-5 mt-1">
+                <li>Farmer: farmer@example.com (any password)</li>
+                <li>Consumer: consumer@example.com (any password)</li>
+              </ul>
+              Or sign up with any email to create a new demo account.
+            </AlertDescription>
+          </Alert>
+        )}
 
         {authMode === "role-select" && (
           <div className="grid md:grid-cols-2 gap-6">

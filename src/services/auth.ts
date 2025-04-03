@@ -1,3 +1,4 @@
+
 import { supabase, isUsingRealSupabase } from '@/lib/supabase';
 import { UserRole } from '@/types';
 
@@ -24,6 +25,9 @@ export const signUp = async (
     const newUser = { id: `mock-${Date.now()}`, email, role };
     mockUsers.push(newUser);
     mockCurrentUser = newUser;
+    
+    // Store in localStorage for persistence across refreshes
+    localStorage.setItem('mockUser', JSON.stringify(newUser));
     
     return { user: newUser, error: null };
   }
@@ -72,6 +76,9 @@ export const signIn = async (email: string, password: string): Promise<{ user: a
     }
     
     mockCurrentUser = user;
+    // Store in localStorage for persistence across refreshes
+    localStorage.setItem('mockUser', JSON.stringify(user));
+    
     return { user, error: null, role: user.role };
   }
 
@@ -106,6 +113,8 @@ export const signIn = async (email: string, password: string): Promise<{ user: a
 export const signOut = async (): Promise<{ error: any }> => {
   if (!isUsingRealSupabase()) {
     mockCurrentUser = null;
+    // Clear from localStorage
+    localStorage.removeItem('mockUser');
     return { error: null };
   }
 
@@ -115,10 +124,20 @@ export const signOut = async (): Promise<{ error: any }> => {
 
 export const getCurrentUser = async (): Promise<{ user: any; error: any, role: UserRole['role'] | null }> => {
   if (!isUsingRealSupabase()) {
-    if (!mockCurrentUser) {
-      return { user: null, error: null, role: null };
+    // Try to get user from memory first
+    if (mockCurrentUser) {
+      return { user: mockCurrentUser, error: null, role: mockCurrentUser.role };
     }
-    return { user: mockCurrentUser, error: null, role: mockCurrentUser.role };
+    
+    // If not in memory, try localStorage
+    const storedUser = localStorage.getItem('mockUser');
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      mockCurrentUser = user;
+      return { user, error: null, role: user.role };
+    }
+    
+    return { user: null, error: null, role: null };
   }
 
   const { data, error } = await supabase.auth.getUser();

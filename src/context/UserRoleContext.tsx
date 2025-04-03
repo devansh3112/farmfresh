@@ -2,6 +2,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { UserRole } from "@/types";
 import { getCurrentUser, signOut } from "@/services/auth";
+import { useNavigate } from "react-router-dom";
 
 interface UserRoleContextType {
   userRole: UserRole["role"] | null;
