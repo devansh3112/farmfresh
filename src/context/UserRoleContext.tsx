@@ -3,6 +3,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { UserRole } from "@/types";
 import { getCurrentUser, signOut } from "@/services/auth";
 import { useNavigate } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
 
 interface UserRoleContextType {
   userRole: UserRole["role"] | null;
@@ -20,6 +21,7 @@ export const UserRoleProvider = ({ children }: { children: ReactNode }) => {
   const [userId, setUserId] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadUserFromSupabase = async () => {
@@ -33,6 +35,7 @@ export const UserRoleProvider = ({ children }: { children: ReactNode }) => {
           setUserEmail(user.email);
           setUserRole(role);
           localStorage.setItem("userRole", role);
+          console.log("User authenticated:", user.email, "with role:", role);
         } else {
           // Check local storage as fallback
           const savedRole = localStorage.getItem("userRole") as UserRole["role"] | null;
@@ -42,6 +45,11 @@ export const UserRoleProvider = ({ children }: { children: ReactNode }) => {
         }
       } catch (error) {
         console.error("Error loading user:", error);
+        toast({
+          title: "Authentication Error",
+          description: "There was a problem authenticating your session. Please try logging in again.",
+          variant: "destructive",
+        });
       } finally {
         setIsLoading(false);
       }
@@ -56,14 +64,28 @@ export const UserRoleProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async () => {
-    const { error } = await signOut();
-    if (!error) {
-      setUserRole(null);
-      setUserId(null);
-      setUserEmail(null);
-      localStorage.removeItem("userRole");
-    } else {
-      console.error("Error logging out:", error);
+    try {
+      const { error } = await signOut();
+      if (!error) {
+        setUserRole(null);
+        setUserId(null);
+        setUserEmail(null);
+        localStorage.removeItem("userRole");
+        navigate("/");
+        toast({
+          title: "Logged out successfully",
+          description: "You have been logged out of your account.",
+        });
+      } else {
+        console.error("Error logging out:", error);
+        toast({
+          title: "Logout error",
+          description: error.message || "Failed to log out. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Unexpected error during logout:", error);
     }
   };
 

@@ -4,8 +4,8 @@ import { UserRole } from '@/types';
 
 // Mock users for when we don't have real Supabase credentials
 const mockUsers = [
-  { id: 'farm1', email: 'farmer@example.com', role: 'farmer' as const },
-  { id: 'user1', email: 'consumer@example.com', role: 'consumer' as const }
+  { id: 'farm1', email: 'farmer@gmail.com', role: 'farmer' as const },
+  { id: 'user1', email: 'consumer@gmail.com', role: 'consumer' as const }
 ];
 
 let mockCurrentUser: { id: string; email: string; role: UserRole['role'] } | null = null;
@@ -39,6 +39,7 @@ export const signUp = async (
   });
 
   if (error) {
+    console.error("Error during signup:", error);
     return { user: null, error };
   }
 
@@ -54,7 +55,7 @@ export const signUp = async (
           name: '',
           phone: '',
           address: '',
-          created_at: new Date()
+          created_at: new Date().toISOString()
         }
       ]);
 
@@ -82,32 +83,66 @@ export const signIn = async (email: string, password: string): Promise<{ user: a
     return { user, error: null, role: user.role };
   }
 
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-  if (error) {
+    if (error) {
+      console.error("Sign in error:", error);
+      return { user: null, error, role: null };
+    }
+
+    // Get the user's role from the profiles table
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', data.user.id)
+      .single();
+
+    if (profileError) {
+      console.error('Error fetching user profile:', profileError);
+      
+      // Check if it's a not found error, which means we need to create a profile
+      if (profileError.code === 'PGRST116') {
+        // Attempt to determine role from email for demo purposes
+        // In a real app, you'd have a proper profile setup flow
+        const role = email.includes('farmer') ? 'farmer' as const : 'consumer' as const;
+        
+        // Create a default profile
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert([{
+            id: data.user.id,
+            email: data.user.email,
+            role: role,
+            name: '',
+            phone: '',
+            address: '',
+            created_at: new Date().toISOString()
+          }]);
+        
+        if (insertError) {
+          console.error('Error creating user profile:', insertError);
+          return { user: data.user, error: null, role: null };
+        }
+        
+        return { user: data.user, error: null, role };
+      }
+      
+      return { user: data.user, error: null, role: null };
+    }
+
+    return { 
+      user: data.user, 
+      error: null,
+      role: profileData?.role as UserRole['role'] || null
+    };
+  } catch (error) {
+    console.error("Unexpected error during sign in:", error);
     return { user: null, error, role: null };
   }
-
-  // Get the user's role from the profiles table
-  const { data: profileData, error: profileError } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', data.user.id)
-    .single();
-
-  if (profileError) {
-    console.error('Error fetching user profile:', profileError);
-    return { user: data.user, error: null, role: null };
-  }
-
-  return { 
-    user: data.user, 
-    error: null,
-    role: profileData?.role as UserRole['role'] || null
-  };
 };
 
 export const signOut = async (): Promise<{ error: any }> => {
@@ -118,8 +153,13 @@ export const signOut = async (): Promise<{ error: any }> => {
     return { error: null };
   }
 
-  const { error } = await supabase.auth.signOut();
-  return { error };
+  try {
+    const { error } = await supabase.auth.signOut();
+    return { error };
+  } catch (error) {
+    console.error("Error during sign out:", error);
+    return { error };
+  }
 };
 
 export const getCurrentUser = async (): Promise<{ user: any; error: any, role: UserRole['role'] | null }> => {
@@ -140,29 +180,60 @@ export const getCurrentUser = async (): Promise<{ user: any; error: any, role: U
     return { user: null, error: null, role: null };
   }
 
-  const { data, error } = await supabase.auth.getUser();
-  
-  if (error || !data?.user) {
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    
+    if (error || !data?.user) {
+      return { user: null, error, role: null };
+    }
+    
+    console.log("Current authenticated user:", data.user.email);
+    
+    // Get the user's role from the profiles table
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', data.user.id)
+      .single();
+
+    if (profileError) {
+      console.error('Error fetching user profile:', profileError);
+      
+      // If profile doesn't exist, try to create a default one
+      if (profileError.code === 'PGRST116') {
+        // For demo, determine role from email pattern
+        const role = data.user.email?.includes('farmer') 
+          ? 'farmer' as const 
+          : 'consumer' as const;
+        
+        // Create a default profile
+        await supabase
+          .from('profiles')
+          .insert([{
+            id: data.user.id,
+            email: data.user.email,
+            role: role,
+            name: '',
+            phone: '',
+            address: '',
+            created_at: new Date().toISOString()
+          }]);
+        
+        return { user: data.user, error: null, role };
+      }
+      
+      return { user: data.user, error: null, role: null };
+    }
+
+    return { 
+      user: data.user, 
+      error: null,
+      role: profileData?.role as UserRole['role'] || null
+    };
+  } catch (error) {
+    console.error("Unexpected error getting current user:", error);
     return { user: null, error, role: null };
   }
-  
-  // Get the user's role from the profiles table
-  const { data: profileData, error: profileError } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', data.user.id)
-    .single();
-
-  if (profileError) {
-    console.error('Error fetching user profile:', profileError);
-    return { user: data.user, error: null, role: null };
-  }
-
-  return { 
-    user: data.user, 
-    error: null,
-    role: profileData?.role as UserRole['role'] || null
-  };
 };
 
 export const updateUserProfile = async (
@@ -178,11 +249,16 @@ export const updateUserProfile = async (
     return { data: { ...profileData, id: userId }, error: null };
   }
 
-  const { data, error } = await supabase
-    .from('profiles')
-    .update(profileData)
-    .eq('id', userId)
-    .select();
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(profileData)
+      .eq('id', userId)
+      .select();
 
-  return { data, error };
+    return { data, error };
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    return { data: null, error };
+  }
 };

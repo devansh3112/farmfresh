@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -47,7 +46,7 @@ const AuthScreen = () => {
           <p className="text-neutral-700 mt-2">Farm-to-Consumer Marketplace</p>
         </div>
 
-        {isDemoMode && (
+        {isDemoMode ? (
           <Alert className="mb-6 border-yellow-500 bg-yellow-50">
             <AlertCircle className="h-4 w-4 text-yellow-600" />
             <AlertTitle className="text-yellow-800">Demo Mode Active</AlertTitle>
@@ -56,10 +55,24 @@ const AuthScreen = () => {
               <br />
               <strong>Demo accounts:</strong>
               <ul className="list-disc ml-5 mt-1">
-                <li>Farmer: farmer@example.com (any password)</li>
-                <li>Consumer: consumer@example.com (any password)</li>
+                <li>Farmer: farmer@gmail.com (any password)</li>
+                <li>Consumer: consumer@gmail.com (any password)</li>
               </ul>
               Or sign up with any email to create a new demo account.
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <Alert className="mb-6 border-green-500 bg-green-50">
+            <AlertCircle className="h-4 w-4 text-green-600" />
+            <AlertTitle className="text-green-800">Connected to Supabase</AlertTitle>
+            <AlertDescription className="text-green-700">
+              Your app is connected to a real Supabase backend.
+              <br />
+              <strong>Test accounts:</strong>
+              <ul className="list-disc ml-5 mt-1">
+                <li>Farmer: farmer@gmail.com (password: farm)</li>
+                <li>Consumer: consumer@gmail.com (password: farm)</li>
+              </ul>
             </AlertDescription>
           </Alert>
         )}

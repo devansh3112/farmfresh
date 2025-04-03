@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { signIn } from "@/services/auth";
 import { useUserRole } from "@/context/UserRoleContext";
+import { isUsingRealSupabase } from "@/lib/supabase";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
@@ -15,20 +16,24 @@ export function LoginForm() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { setUserRole } = useUserRole();
+  const isDemoMode = !isUsingRealSupabase();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      // In demo mode, any password works but we still need a valid email
       const { user, error, role } = await signIn(email, password);
       
       if (error) {
+        console.log("Login error:", error);
         toast({
           title: "Login failed",
-          description: error.message,
+          description: error.message || "Invalid email or password",
           variant: "destructive",
         });
+        setLoading(false);
         return;
       }
 
@@ -36,7 +41,7 @@ export function LoginForm() {
         setUserRole(role);
         toast({
           title: "Login successful",
-          description: "Welcome back!",
+          description: `Welcome back${user.email ? `, ${user.email}` : ''}!`,
         });
         navigate(role === "farmer" ? "/dashboard" : "/marketplace");
       } else {
@@ -55,6 +60,16 @@ export function LoginForm() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFillCredentials = (type: 'farmer' | 'consumer') => {
+    if (type === 'farmer') {
+      setEmail('farmer@gmail.com');
+      setPassword('farm');
+    } else {
+      setEmail('consumer@gmail.com');
+      setPassword('farm');
     }
   };
 
@@ -87,6 +102,33 @@ export function LoginForm() {
           required
         />
       </div>
+      
+      {isDemoMode ? (
+        <div className="space-y-2 pt-2">
+          <div className="text-xs text-gray-500 mb-1">Quick login with demo accounts:</div>
+          <div className="flex gap-2">
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm" 
+              className="text-xs flex-1"
+              onClick={() => handleFillCredentials('farmer')}
+            >
+              Farmer Demo
+            </Button>
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm" 
+              className="text-xs flex-1"
+              onClick={() => handleFillCredentials('consumer')}
+            >
+              Consumer Demo
+            </Button>
+          </div>
+        </div>
+      ) : null}
+      
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "Signing in..." : "Sign In"}
       </Button>
