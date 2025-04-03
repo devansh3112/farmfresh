@@ -2,11 +2,36 @@
 import { supabase } from '@/lib/supabase';
 import { UserRole } from '@/types';
 
+// Check if we're using real Supabase or placeholder credentials
+const isUsingRealSupabase = !supabase.supabaseUrl.includes('your-project.supabase.co');
+
+// Mock users for when we don't have real Supabase credentials
+const mockUsers = [
+  { id: 'farm1', email: 'farmer@example.com', role: 'farmer' },
+  { id: 'user1', email: 'consumer@example.com', role: 'consumer' }
+];
+
+let mockCurrentUser: { id: string; email: string; role: UserRole['role'] } | null = null;
+
 export const signUp = async (
   email: string, 
   password: string, 
   role: UserRole['role']
 ): Promise<{ user: any; error: any }> => {
+  if (!isUsingRealSupabase) {
+    // Simple mock implementation
+    const existingUser = mockUsers.find(u => u.email === email);
+    if (existingUser) {
+      return { user: null, error: { message: 'User already exists' } };
+    }
+    
+    const newUser = { id: `mock-${Date.now()}`, email, role };
+    mockUsers.push(newUser);
+    mockCurrentUser = newUser;
+    
+    return { user: newUser, error: null };
+  }
+
   // Register the user
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -43,6 +68,17 @@ export const signUp = async (
 };
 
 export const signIn = async (email: string, password: string): Promise<{ user: any; error: any, role: UserRole['role'] | null }> => {
+  if (!isUsingRealSupabase) {
+    // Simple mock implementation
+    const user = mockUsers.find(u => u.email === email);
+    if (!user) {
+      return { user: null, error: { message: 'Invalid credentials' }, role: null };
+    }
+    
+    mockCurrentUser = user;
+    return { user, error: null, role: user.role as UserRole['role'] };
+  }
+
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
@@ -72,11 +108,23 @@ export const signIn = async (email: string, password: string): Promise<{ user: a
 };
 
 export const signOut = async (): Promise<{ error: any }> => {
+  if (!isUsingRealSupabase) {
+    mockCurrentUser = null;
+    return { error: null };
+  }
+
   const { error } = await supabase.auth.signOut();
   return { error };
 };
 
 export const getCurrentUser = async (): Promise<{ user: any; error: any, role: UserRole['role'] | null }> => {
+  if (!isUsingRealSupabase) {
+    if (!mockCurrentUser) {
+      return { user: null, error: null, role: null };
+    }
+    return { user: mockCurrentUser, error: null, role: mockCurrentUser.role };
+  }
+
   const { data, error } = await supabase.auth.getUser();
   
   if (error || !data?.user) {
@@ -110,6 +158,11 @@ export const updateUserProfile = async (
     address?: string;
   }
 ): Promise<{ data: any; error: any }> => {
+  if (!isUsingRealSupabase) {
+    // In a real implementation, you would update the user profile here
+    return { data: { ...profileData, id: userId }, error: null };
+  }
+
   const { data, error } = await supabase
     .from('profiles')
     .update(profileData)
@@ -118,4 +171,3 @@ export const updateUserProfile = async (
 
   return { data, error };
 };
-
