@@ -1,27 +1,20 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-// Use environment variables for Supabase credentials or fallback to demo mode
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder-project.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-anon-key';
+// Use the provided environment variables
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://kyyekdllfurafhaclsac.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt5eWVrZGxsZnVyYWZoYWNsc2FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM3MDQxMDYsImV4cCI6MjA1OTI4MDEwNn0.QuOs4q4zsb76ZMbLofUi-IKd3cFGfnQGz-E5zLKkLFI';
 
 // Create a single supabase client for the entire app
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Helper to check if we're using real Supabase or placeholder credentials
 export const isUsingRealSupabase = (): boolean => {
-  const usingDemo = supabaseUrl === 'https://placeholder-project.supabase.co' || 
-                   supabaseAnonKey === 'placeholder-anon-key';
-                   
-  if (usingDemo) {
-    console.warn("⚠️ Running in demo mode with mock data. To connect to a real Supabase backend, please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.");
-  }
-  
-  return !usingDemo;
+  return supabaseUrl !== 'https://placeholder-project.supabase.co';
 };
 
 export type SupabaseUser = {
   id: string;
   email: string;
-  role: 'farmer' | 'consumer' | null;
+  role: 'farmer' | 'consumer';
 };
