@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useUserRole } from "@/context/UserRoleContext";
-import { Farm, ShoppingBag } from "lucide-react";
+import { ShoppingBag, Tractor } from "lucide-react";
 
 const AuthScreen = () => {
   const { userRole, setUserRole } = useUserRole();
@@ -36,7 +36,7 @@ const AuthScreen = () => {
           <Card className="border-2 border-primary hover:shadow-lg transition-shadow">
             <CardHeader className="text-center">
               <div className="mx-auto bg-primary-light w-16 h-16 rounded-full flex items-center justify-center text-white mb-4">
-                <Farm size={32} />
+                <Tractor size={32} />
               </div>
               <CardTitle>I'm a Farmer</CardTitle>
               <CardDescription>List and sell your fresh produce directly to consumers</CardDescription>
