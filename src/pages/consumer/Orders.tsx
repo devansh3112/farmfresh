@@ -10,9 +10,10 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getOrdersByConsumer } from "@/data/mockData";
 import { Package, Star, ExternalLink, Clock } from "lucide-react";
 import { Order } from "@/types";
+import { getOrdersByConsumer } from "@/services/orders";
+import { useUserRole } from "@/context/UserRoleContext";
 
 const OrderStatusBadge = ({ status }: { status: Order["status"] }) => {
   const statusConfig: Record<Order["status"], { color: string; label: string }> = {
@@ -36,19 +37,55 @@ const OrderStatusBadge = ({ status }: { status: Order["status"] }) => {
 const Orders = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const { userId } = useUserRole();
 
   useEffect(() => {
-    // In a real app, we would fetch orders for the current user
-    // For now, we'll use the mock data
-    const fetchedOrders = getOrdersByConsumer("c1");
-    setOrders(fetchedOrders);
-    setLoading(false);
-  }, []);
+    const fetchOrders = async () => {
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
+      
+      try {
+        const { data, error } = await getOrdersByConsumer(userId);
+        
+        if (error) {
+          console.error("Error fetching orders:", error);
+          return;
+        }
+        
+        if (data) {
+          setOrders(data);
+        }
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [userId]);
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
         <p>Loading your orders...</p>
+      </div>
+    );
+  }
+
+  if (!userId) {
+    return (
+      <div className="max-w-2xl mx-auto text-center py-10">
+        <div className="bg-neutral-100 rounded-lg p-8 mb-6">
+          <Package className="w-16 h-16 mx-auto mb-4 text-neutral-400" />
+          <h2 className="text-2xl font-bold mb-2 font-serif">Please log in</h2>
+          <p className="text-neutral-600 mb-6">You need to be logged in to view your orders.</p>
+          <Button asChild>
+            <Link to="/">Log In</Link>
+          </Button>
+        </div>
       </div>
     );
   }

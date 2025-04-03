@@ -1,6 +1,8 @@
 
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { CartItem, Product } from "@/types";
+import { useUserRole } from "@/context/UserRoleContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface CartContextType {
   items: CartItem[];
@@ -16,25 +18,64 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>([]);
+  const { userRole, userId } = useUserRole();
+  const { toast } = useToast();
 
   // Load cart from localStorage on initial render
   useEffect(() => {
-    const savedCart = localStorage.getItem("cart");
-    if (savedCart) {
-      try {
-        setItems(JSON.parse(savedCart));
-      } catch (error) {
-        console.error("Failed to parse cart from localStorage:", error);
+    if (userId) {
+      const cartKey = `cart-${userId}`;
+      const savedCart = localStorage.getItem(cartKey);
+      if (savedCart) {
+        try {
+          setItems(JSON.parse(savedCart));
+        } catch (error) {
+          console.error("Failed to parse cart from localStorage:", error);
+        }
       }
     }
-  }, []);
+  }, [userId]);
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(items));
-  }, [items]);
+    if (userId) {
+      const cartKey = `cart-${userId}`;
+      localStorage.setItem(cartKey, JSON.stringify(items));
+    }
+  }, [items, userId]);
 
   const addToCart = (product: Product, quantity: number) => {
+    if (!userId) {
+      toast({
+        title: "Please log in",
+        description: "You need to be logged in to add items to your cart",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (userRole !== "consumer") {
+      toast({
+        title: "Action not allowed",
+        description: "Only consumers can add items to cart",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (quantity <= 0) {
+      return;
+    }
+
+    if (product.stock < quantity) {
+      toast({
+        title: "Not enough stock",
+        description: `Only ${product.stock} units available`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setItems((prevItems) => {
       // Check if item is already in cart
       const existingItemIndex = prevItems.findIndex(
@@ -44,12 +85,28 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       if (existingItemIndex >= 0) {
         // Update quantity if item exists
         const updatedItems = [...prevItems];
-        updatedItems[existingItemIndex].quantity += quantity;
+        const newQuantity = updatedItems[existingItemIndex].quantity + quantity;
+        
+        if (newQuantity > product.stock) {
+          toast({
+            title: "Not enough stock",
+            description: `Cannot add more than available stock (${product.stock})`,
+            variant: "destructive",
+          });
+          return prevItems;
+        }
+
+        updatedItems[existingItemIndex].quantity = newQuantity;
         return updatedItems;
       } else {
         // Add new item if it doesn't exist
         return [...prevItems, { product, quantity }];
       }
+    });
+
+    toast({
+      title: "Added to cart",
+      description: `${quantity} ${product.name} added to your cart`,
     });
   };
 
@@ -65,11 +122,26 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    setItems((prevItems) =>
-      prevItems.map((item) =>
+    setItems((prevItems) => {
+      const item = prevItems.find(item => item.product.id === productId);
+      if (item && quantity > item.product.stock) {
+        toast({
+          title: "Not enough stock",
+          description: `Cannot add more than available stock (${item.product.stock})`,
+          variant: "destructive",
+        });
+        
+        return prevItems.map((item) =>
+          item.product.id === productId 
+            ? { ...item, quantity: item.product.stock } 
+            : item
+        );
+      }
+
+      return prevItems.map((item) =>
         item.product.id === productId ? { ...item, quantity } : item
-      )
-    );
+      );
+    });
   };
 
   const clearCart = () => {

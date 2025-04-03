@@ -13,10 +13,13 @@ import { Input } from "@/components/ui/input";
 import { Trash2, Minus, Plus, ShoppingBag, ArrowLeft } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/components/ui/use-toast";
+import { useUserRole } from "@/context/UserRoleContext";
+import { createOrder } from "@/services/orders";
 
 const Cart = () => {
   const { items, removeFromCart, updateQuantity, clearCart, totalPrice } = useCart();
   const { toast } = useToast();
+  const { userId } = useUserRole();
   const navigate = useNavigate();
   const [placingOrder, setPlacingOrder] = useState(false);
 
@@ -32,18 +35,47 @@ const Cart = () => {
     });
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
+    if (!userId) {
+      toast({
+        title: "Please log in",
+        description: "You need to be logged in to place an order",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setPlacingOrder(true);
     
-    // Simulate order placement
-    setTimeout(() => {
+    try {
+      const { data, error } = await createOrder(userId, items, totalPrice);
+      
+      if (error) {
+        toast({
+          title: "Order failed",
+          description: error.message || "Failed to place your order",
+          variant: "destructive",
+        });
+        setPlacingOrder(false);
+        return;
+      }
+      
       toast({
         title: "Order placed successfully!",
         description: "Your order has been placed and will be processed by the farmer.",
       });
+      
       clearCart();
       navigate("/orders");
-    }, 1500);
+    } catch (error) {
+      console.error("Error placing order:", error);
+      toast({
+        title: "Order failed",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+      setPlacingOrder(false);
+    }
   };
 
   if (items.length === 0) {
@@ -170,7 +202,7 @@ const Cart = () => {
               <Button
                 className="w-full"
                 onClick={handleCheckout}
-                disabled={placingOrder}
+                disabled={placingOrder || !userId}
               >
                 {placingOrder ? "Processing..." : "Place Order"}
               </Button>

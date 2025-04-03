@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,25 +7,116 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUserRole } from "@/context/UserRoleContext";
 import { toast } from "@/hooks/use-toast";
+import { updateUserProfile } from "@/services/auth";
+import { supabase } from "@/lib/supabase";
 
 const ProfileScreen = () => {
-  const { userRole } = useUserRole();
-  const [name, setName] = useState("John Doe");
-  const [email, setEmail] = useState("john.doe@example.com");
-  const [phone, setPhone] = useState("(555) 123-4567");
-  const [address, setAddress] = useState("123 Main St, Anytown, USA");
+  const { userRole, userId, userEmail, logout } = useUserRole();
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (userId) {
+      loadUserProfile();
+    } else {
+      setProfileLoading(false);
+    }
+  }, [userId]);
+
+  const loadUserProfile = async () => {
+    setProfileLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('name, phone, address')
+        .eq('id', userId)
+        .single();
+
+      if (data && !error) {
+        setName(data.name || "");
+        setPhone(data.phone || "");
+        setAddress(data.address || "");
+      }
+    } catch (error) {
+      console.error("Error loading profile:", error);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!userId) {
+      toast({
+        title: "Not authorized",
+        description: "You must be logged in to update your profile",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setLoading(true);
+    
+    try {
+      const { error } = await updateUserProfile(userId, {
+        name,
+        phone,
+        address,
+      });
+      
+      if (error) {
+        toast({
+          title: "Update failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      toast({
+        title: "Profile Updated",
+        description: "Your profile information has been updated successfully.",
+      });
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast({
+        title: "Update failed",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await logout();
     toast({
-      title: "Profile Updated",
-      description: "Your profile information has been updated successfully.",
+      title: "Logged out",
+      description: "You have been logged out successfully.",
     });
   };
 
+  if (profileLoading) {
+    return (
+      <div className="max-w-4xl mx-auto flex items-center justify-center h-64">
+        <p>Loading profile...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">My Profile</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">My Profile</h1>
+        <Button variant="outline" onClick={handleLogout}>
+          Logout
+        </Button>
+      </div>
       
       <Tabs defaultValue="profile" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
@@ -55,8 +146,9 @@ const ProfileScreen = () => {
                     <Input 
                       id="email" 
                       type="email" 
-                      value={email} 
-                      onChange={(e) => setEmail(e.target.value)} 
+                      value={userEmail || ""} 
+                      disabled
+                      className="bg-neutral-100"
                     />
                   </div>
                   
@@ -80,8 +172,12 @@ const ProfileScreen = () => {
                 </div>
                 
                 <div className="flex justify-end">
-                  <Button type="submit" className="bg-primary hover:bg-primary-dark">
-                    Save Changes
+                  <Button 
+                    type="submit" 
+                    className="bg-primary hover:bg-primary-dark"
+                    disabled={loading}
+                  >
+                    {loading ? "Saving..." : "Save Changes"}
                   </Button>
                 </div>
               </form>
