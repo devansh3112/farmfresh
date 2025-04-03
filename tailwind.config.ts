@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -25,12 +26,30 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+					DEFAULT: '#4B7F52',
+					light: '#6EA575',
+					dark: '#345A3A',
 				},
 				secondary: {
-					DEFAULT: 'hsl(var(--secondary))',
-					foreground: 'hsl(var(--secondary-foreground))'
+					DEFAULT: '#E8C547',
+					light: '#F2D87A',
+					dark: '#CAA82E',
+				},
+				accent: {
+					DEFAULT: '#D64933',
+					light: '#E27362',
+					dark: '#B33A29',
+				},
+				neutral: {
+					100: '#FFFFFF',
+					200: '#F7F9F4',
+					300: '#E9EFE3',
+					400: '#D1DBCA',
+					500: '#A7B49E',
+					600: '#7D8A76',
+					700: '#5A644E',
+					800: '#3C4230',
+					900: '#1E2218',
 				},
 				destructive: {
 					DEFAULT: 'hsl(var(--destructive))',
@@ -89,6 +108,10 @@ export default {
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out'
+			},
+			fontFamily: {
+				serif: ['Georgia', 'Cambria', 'Times New Roman', 'Times', 'serif'],
+				sans: ['Inter', 'system-ui', 'sans-serif'],
 			}
 		}
 	},
