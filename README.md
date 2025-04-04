@@ -184,4 +184,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 Developed with ❤️ by [mmwhycode team](https://github.com/mmwhycode)
 
-For support, please contact: support@farmfreshapp.com
+For support, please contact: support@farmfreshapp.com 
