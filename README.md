@@ -1,73 +1,187 @@
-# Welcome to your Lovable project
+# Farm Fresh App
 
-## Project info
+A React Native mobile application connecting local farmers with consumers, promoting direct farm-to-table commerce. The app features dual interfaces - one for farmers to manage and sell products, and another for consumers to browse and purchase fresh produce.
 
-**URL**: https://lovable.dev/projects/a023c71a-0334-4845-83ab-b1f03ab2b2a1
+![Farm Fresh App Logo](https://images.unsplash.com/photo-1500076656116-558758c991c1?w=600)
 
-## How can I edit this code?
+## Table of Contents
 
-There are several ways of editing your application.
+- [Features](#features)
+- [Screenshots](#screenshots)
+- [Installation](#installation)
+- [Project Structure](#project-structure)
+- [Usage](#usage)
+- [Tech Stack](#tech-stack)
+- [Contributing](#contributing)
+- [License](#license)
 
-**Use Lovable**
+## Features
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/a023c71a-0334-4845-83ab-b1f03ab2b2a1) and start prompting.
+### For Farmers
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Product Management**: Add, edit, and remove products from your inventory
+- **Order Management**: View and process incoming orders
+- **Dashboard**: Overview of sales, inventory, and customer ratings
+- **Profile Management**: Customize farm profile visible to customers
 
-**Use your preferred IDE**
+### For Consumers
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- **Product Browsing**: Browse products by category with sort and search functionality
+- **Shopping Cart**: Add products to cart and proceed to checkout
+- **Order Tracking**: Track order status and history
+- **Farm Discovery**: Explore different local farms and their offerings
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Screenshots
 
-Follow these steps:
+<div style="display: flex; flex-wrap: wrap; gap: 10px;">
+    <img src="https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2" width="200" alt="Product Detail Screen">
+    <img src="https://images.unsplash.com/photo-1608198093002-ad4e005484ec" width="200" alt="Shopping Cart Screen">
+    <img src="https://images.unsplash.com/photo-1587049352851-8d4e89133924" width="200" alt="Checkout Screen">
+</div>
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## Installation
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### Prerequisites
 
-# Step 3: Install the necessary dependencies.
-npm i
+- Node.js (v14.0.0 or higher)
+- npm or yarn
+- React Native development environment set up according to [official documentation](https://reactnative.dev/docs/environment-setup)
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+### Step 1: Clone the Repository
+
+```bash
+git clone https://github.com/mmwhycode/react-native-spark-start.git farm-fresh-app
+cd farm-fresh-app
 ```
 
-**Edit a file directly in GitHub**
+### Step 2: Install Dependencies
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+# Using npm
+npm install
 
-**Use GitHub Codespaces**
+# OR using yarn
+yarn install
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Step 3: Set Up Environment
 
-## What technologies are used for this project?
+```bash
+# Copy the example environment file
+cp .env.example .env
 
-This project is built with:
+# Edit the .env file with your configurations
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Step 4: Run the Application
 
-## How can I deploy this project?
+#### For iOS:
 
-Simply open [Lovable](https://lovable.dev/projects/a023c71a-0334-4845-83ab-b1f03ab2b2a1) and click on Share -> Publish.
+```bash
+# Install pods for iOS
+cd ios && pod install && cd ..
 
-## Can I connect a custom domain to my Lovable project?
+# Run the iOS app
+npm run ios
+# or
+yarn ios
+```
 
-Yes it is!
+#### For Android:
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+```bash
+# Run the Android app
+npm run android
+# or
+yarn android
+```
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## Project Structure
+
+```
+farm-fresh-app/
+├── src/
+│   ├── assets/           # Images, fonts, and other static assets
+│   ├── components/       # Reusable UI components
+│   ├── contexts/         # React Context API providers
+│   ├── navigation/       # Navigation configuration
+│   ├── screens/          # Application screens
+│   ├── services/         # API services and data handling
+│   ├── utils/            # Utility functions
+│   └── App.tsx           # Application entry point
+├── ios/                  # iOS-specific files
+├── android/              # Android-specific files
+├── .env.example          # Example environment variables
+├── .gitignore            # Git ignore configuration
+├── package.json          # Project dependencies and scripts
+└── README.md             # Project documentation
+```
+
+## Usage
+
+### Login Credentials for Demo
+
+**Farmer Account:**
+- Email: farmer@example.com
+- Password: password123
+
+**Consumer Account:**
+- Email: consumer@example.com
+- Password: password123
+
+### User Role Switching
+
+The app allows switching between farmer and consumer roles through the profile screen. This is particularly useful for demonstration and testing purposes.
+
+### Key Workflows
+
+1. **Adding Products (Farmer)**: Navigate to Products > Add Product
+2. **Browsing Products (Consumer)**: Browse by category or search
+3. **Making a Purchase (Consumer)**: Add to cart > View cart > Checkout
+4. **Order Management (Farmer)**: View incoming orders from the dashboard
+
+## Tech Stack
+
+- **React Native**: Core framework for building cross-platform mobile apps
+- **Expo**: Development toolchain for React Native
+- **TypeScript**: Type-safe JavaScript for better developer experience
+- **React Navigation**: Navigation library for React Native apps
+- **Context API**: State management for shared data
+- **AsyncStorage**: Persistent local storage for data caching
+- **React Native Vector Icons**: Icon library for UI components
+
+## One-Command Setup
+
+To set up the entire project with a single command, use:
+
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/mmwhycode/react-native-spark-start/main/setup.sh)"
+```
+
+Or manually:
+
+```bash
+git clone https://github.com/mmwhycode/react-native-spark-start.git farm-fresh-app && \
+cd farm-fresh-app && \
+npm install && \
+npm run prepare
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a new branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Commit your changes (`git commit -m 'Add some amazing feature'`)
+5. Push to the branch (`git push origin feature/amazing-feature`)
+6. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+Developed with ❤️ by [mmwhycode team](https://github.com/mmwhycode)
+
+For support, please contact: support@farmfreshapp.com
